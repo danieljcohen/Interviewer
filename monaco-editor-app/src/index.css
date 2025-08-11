@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Ensure the app can take full viewport height and prevent overflow */
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Reset any default margins/padding that might cause issues */
+* {
+  box-sizing: border-box;
+}

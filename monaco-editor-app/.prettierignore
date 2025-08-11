@@ -1,0 +1,7 @@
+node_modules
+dist
+build
+coverage
+*.log
+yarn.lock
+package-lock.json 
