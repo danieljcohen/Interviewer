@@ -53,12 +53,45 @@ export function IDE() {
   const [showTestRunner, setShowTestRunner] = useState(false);
   const [testRunnerHeight, setTestRunnerHeight] = useState(300);
   const files = useMemo(() => flattenFiles(tree), [tree]);
-  const [activeFileId, setActiveFileId] = useState<string>(files[0]?.id ?? '');
+  
+  // Tab management
+  const [openTabs, setOpenTabs] = useState<string[]>([]);
+  const [activeTabId, setActiveTabId] = useState<string>('');
 
+  // Initialize with first file if no tabs are open
+  const activeFileId = activeTabId || files[0]?.id || '';
+  
   const activeFile = useMemo(
     () => files.find((f) => f.id === activeFileId),
     [files, activeFileId]
   );
+
+  // Add file to tabs when selected
+  const handleFileSelect = (fileId: string) => {
+    setActiveTabId(fileId);
+    if (!openTabs.includes(fileId)) {
+      setOpenTabs(prev => [...prev, fileId]);
+    }
+  };
+
+  // Close tab
+  const handleCloseTab = (fileId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newTabs = openTabs.filter(id => id !== fileId);
+    setOpenTabs(newTabs);
+    
+    // If closing active tab, switch to another tab
+    if (fileId === activeTabId) {
+      const currentIndex = openTabs.indexOf(fileId);
+      const nextTab = newTabs[currentIndex] || newTabs[currentIndex - 1] || newTabs[0];
+      setActiveTabId(nextTab || '');
+    }
+  };
+
+  // Get file info for tabs
+  const getFileInfo = (fileId: string) => {
+    return files.find(f => f.id === fileId);
+  };
 
   const handleContentChange = (value?: string) => {
     if (!activeFile) return;
@@ -76,14 +109,9 @@ export function IDE() {
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden max-h-screen max-w-screen">
       {/* Header */}
-      <header className="bg-slate-900 border-b border-gray-700 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-          <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-        </div>
-        <h1 className="text-gray-200 font-medium text-sm">Monaco Editor IDE</h1>
-        <div className="flex items-center space-x-4">
+      <header className="bg-slate-900 border-b border-gray-700 px-4 py-3 flex items-center justify-center relative">
+        <h1 className="text-white font-bold text-3xl">Interviewer IDE</h1>
+        <div className="absolute right-4 flex items-center space-x-4">
           <div className="text-gray-400 text-xs">
             {activeFile ? `Editing: ${activeFile.name}` : 'No file selected'}
           </div>
@@ -105,9 +133,38 @@ export function IDE() {
         <FileExplorer
           tree={tree}
           activeFileId={activeFileId}
-          onSelect={setActiveFileId}
+          onSelect={handleFileSelect}
         />
         <div className="flex flex-col flex-1">
+          {/* Tab Bar - only over the code editor */}
+          {openTabs.length > 0 && (
+            <div className="bg-slate-800 border-b border-gray-700 flex items-center overflow-x-auto">
+              {openTabs.map((fileId) => {
+                const file = getFileInfo(fileId);
+                const isActive = fileId === activeTabId;
+                return (
+                  <div
+                    key={fileId}
+                    onClick={() => setActiveTabId(fileId)}
+                    className={`flex items-center px-4 py-2 cursor-pointer border-r border-gray-700 min-w-0 ${
+                      isActive 
+                        ? 'bg-slate-900 text-white' 
+                        : 'bg-slate-800 text-gray-300 hover:bg-slate-700'
+                    }`}
+                  >
+                    <span className="text-xs truncate max-w-32">{file?.name || 'Unknown'}</span>
+                    <button
+                      onClick={(e) => handleCloseTab(fileId, e)}
+                      className="ml-2 text-gray-400 hover:text-white text-xs"
+                    >
+                      ×
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          
           <MonacoEditor
             activeFile={activeFile}
             onContentChange={handleContentChange}

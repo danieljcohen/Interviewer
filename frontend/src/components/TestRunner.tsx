@@ -25,7 +25,8 @@ export function TestRunner({ isVisible, activeFileContent }: TestRunnerProps) {
   const [isRunning, setIsRunning] = useState(false);
   const [result, setResult] = useState<any>(null);
   // Hardcoded API URL - you can update this to your actual API Gateway URL
-  const apiUrl = 'https://your-api-gateway-url.execute-api.region.amazonaws.com/prod';
+  const apiUrl =
+    'https://your-api-gateway-url.execute-api.region.amazonaws.com/prod';
 
   const runTest = async () => {
     setIsRunning(true);
@@ -39,7 +40,7 @@ export function TestRunner({ isVisible, activeFileContent }: TestRunnerProps) {
         code: currentCode,
         input,
         expectedOutput,
-        language: 'typescript'
+        language: 'typescript',
       };
 
       console.log('Submitting job:', jobData);
@@ -57,7 +58,7 @@ export function TestRunner({ isVisible, activeFileContent }: TestRunnerProps) {
       }
 
       const jobResponse: JobResponse = await response.json();
-      
+
       console.log('Job submitted successfully:', jobResponse);
 
       // For now, we'll simulate the test result since we haven't implemented the job processor yet
@@ -71,16 +72,16 @@ export function TestRunner({ isVisible, activeFileContent }: TestRunnerProps) {
         actualOutput: isPassing ? expectedOutput : 'Wrong Answer',
         executionTime: Math.random() * 100 + 50,
         jobId: jobResponse.jobId,
-        message: `Job submitted successfully (ID: ${jobResponse.jobId})`
+        message: `Job submitted successfully (ID: ${jobResponse.jobId})`,
       });
-
     } catch (error) {
       console.error('Test execution error:', error);
       setResult({
         isPassing: false,
         actualOutput: 'Error',
         executionTime: 0,
-        error: error instanceof Error ? error.message : 'Unknown error occurred'
+        error:
+          error instanceof Error ? error.message : 'Unknown error occurred',
       });
     } finally {
       setIsRunning(false);
@@ -115,7 +116,7 @@ export function TestRunner({ isVisible, activeFileContent }: TestRunnerProps) {
               {isRunning ? 'Running...' : 'Run Test'}
             </button>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-slate-300 text-xs mb-1">Input</label>
@@ -146,13 +147,17 @@ export function TestRunner({ isVisible, activeFileContent }: TestRunnerProps) {
                 result.error
                   ? 'bg-red-900/50 text-red-300 border border-red-700'
                   : result.isPassing
-                  ? 'bg-green-900/50 text-green-300 border border-green-700'
-                  : 'bg-red-900/50 text-red-300 border border-red-700'
+                    ? 'bg-green-900/50 text-green-300 border border-green-700'
+                    : 'bg-red-900/50 text-red-300 border border-red-700'
               }`}
             >
               <div className="flex items-center justify-between">
                 <span className="font-medium">
-                  {result.error ? '✗ Error' : result.isPassing ? '✓ Passed' : '✗ Failed'}
+                  {result.error
+                    ? '✗ Error'
+                    : result.isPassing
+                      ? '✓ Passed'
+                      : '✗ Failed'}
                 </span>
                 {!result.error && (
                   <span className="text-slate-400">
