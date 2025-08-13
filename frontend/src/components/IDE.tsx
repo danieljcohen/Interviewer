@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { FileExplorer, type FileNode } from './FileExplorer';
 import { MonacoEditor } from './MonacoEditor';
+import { TestRunner } from './TestRunner';
 
 // TODO: @danieljcohen0 - Make this dynamic - stored somewhere
 const initialTree: FileNode[] = [
@@ -49,6 +50,8 @@ function flattenFiles(tree: FileNode[]): FileNode[] {
 
 export function IDE() {
   const [tree, setTree] = useState<FileNode[]>(initialTree);
+  const [showTestRunner, setShowTestRunner] = useState(false);
+  const [testRunnerHeight, setTestRunnerHeight] = useState(300);
   const files = useMemo(() => flattenFiles(tree), [tree]);
   const [activeFileId, setActiveFileId] = useState<string>(files[0]?.id ?? '');
 
@@ -80,11 +83,23 @@ export function IDE() {
           <div className="w-3 h-3 bg-green-500 rounded-full"></div>
         </div>
         <h1 className="text-gray-200 font-medium text-sm">Monaco Editor IDE</h1>
-        <div className="text-gray-400 text-xs">
-          {activeFile ? `Editing: ${activeFile.name}` : 'No file selected'}
+        <div className="flex items-center space-x-4">
+          <div className="text-gray-400 text-xs">
+            {activeFile ? `Editing: ${activeFile.name}` : 'No file selected'}
+          </div>
+          <button
+            onClick={() => setShowTestRunner(!showTestRunner)}
+            className={`px-3 py-1 text-xs rounded transition-colors ${
+              showTestRunner
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+            }`}
+          >
+            {showTestRunner ? 'Hide Test Runner' : 'Show Test Runner'}
+          </button>
         </div>
       </header>
-      
+
       {/* Main content */}
       <div className="flex flex-1 overflow-hidden">
         <FileExplorer
@@ -92,10 +107,55 @@ export function IDE() {
           activeFileId={activeFileId}
           onSelect={setActiveFileId}
         />
-        <MonacoEditor
-          activeFile={activeFile}
-          onContentChange={handleContentChange}
-        />
+        <div className="flex flex-col flex-1">
+          <MonacoEditor
+            activeFile={activeFile}
+            onContentChange={handleContentChange}
+          />
+          {showTestRunner && (
+            <div
+              className="relative border-t border-white"
+              style={{ height: `${testRunnerHeight}px` }}
+            >
+              {/* Resize handle */}
+              <div
+                className="absolute top-0 left-0 right-0 h-4 bg-slate-800 cursor-row-resize hover:bg-slate-800 z-10"
+                onMouseDown={(e) => {
+                  console.log('Test Runner resize handle clicked!');
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const startY = e.clientY;
+                  const startHeight = testRunnerHeight;
+
+                  const handleMouseMove = (e: MouseEvent) => {
+                    const delta = e.clientY - startY;
+                    const newHeight = Math.max(
+                      200,
+                      Math.min(600, startHeight - delta)
+                    );
+                    setTestRunnerHeight(newHeight);
+                  };
+
+                  const handleMouseUp = () => {
+                    document.removeEventListener('mousemove', handleMouseMove);
+                    document.removeEventListener('mouseup', handleMouseUp);
+                  };
+
+                  document.addEventListener('mousemove', handleMouseMove);
+                  document.addEventListener('mouseup', handleMouseUp);
+                }}
+              >
+                <div className="flex items-center justify-center h-full">
+                  <span className="text-white text-xs font-bold">⋮⋮⋮</span>
+                </div>
+              </div>
+              <TestRunner 
+                isVisible={showTestRunner} 
+                activeFileContent={activeFile?.content || ''}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
